@@ -1,0 +1,26 @@
+#!/bin/bash
+#$ -l h_rt=12:00:00
+#$ -l h_vmem=11G
+#$ -pe smp 8
+#$ -l gpu=1
+#$ -cwd 
+#$ -j y
+#$ -l cluster=andrena
+
+
+# Load modules
+module load python/3.8.5
+module load cuda/11.6.2
+module load cudnn/8.4.1-cuda11.6
+module load java/1.8.0_382-openjdk
+
+# Activate virtual environment
+source .venv/bin/activate
+
+python3 main.py --image_dir /data/PublicDataSets/Coco-2014/test2014/ \
+		--save_dir /data/scratch/eey362/superpixel_features/test_m100 \
+		--num_superpixels 100
+
+python3 merge_and_clean.py --input_dir /data/scratch/eey362/superpixel_features/test_m100 \
+							--output_dir /data/scratch/eey362/superpixel_features/m100
+							
