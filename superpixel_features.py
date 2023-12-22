@@ -32,12 +32,14 @@ def _run_slic(
     sigma: Optional[float] = 1.0,
     start_label: Optional[int] = 0,
 ):
+    channel_axis = -1 if img.ndim == 3 else None
     segments_slic = slic(
         img,
         n_segments=n_segments,
         compactness=compactness,
         sigma=sigma,
         start_label=start_label,
+        channel_axis=channel_axis,
     )
     return segments_slic
 
