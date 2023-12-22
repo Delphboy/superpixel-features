@@ -5,14 +5,36 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Test Generate",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/main.py",
+            "args": [
+                "--image_dir", "/homes/hps01/superpixel-features/test_images",
+                "--save_dir", "/homes/hps01/superpixel-features/test_output/",
+                "--num_superpixels", "10",
+                "--is_masked"
+            ],
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
+            "name": "Test Load",
+            "type": "python",
+            "request": "launch",
+            "program": "${workspaceFolder}/test_load.py",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Flickr8k",
             "type": "python",
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "args": [
                 "--image_dir", "/import/gameai-01/eey362/datasets/flickr8k/images/",
-                "--save_dir", "/import/gameai-01/eey362/datasets/flickr8k/superpixel_features_m=100/",
-                "--num_superpixels", "100",
+                "--save_dir", "/import/gameai-01/eey362/datasets/flickr8k/superpixel_features_m=10/",
+                "--num_superpixels", "10",
             ],
             "console": "integratedTerminal",
             "justMyCode": true

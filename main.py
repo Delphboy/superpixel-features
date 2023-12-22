@@ -27,9 +27,7 @@ def get_model():
     return MODEL
 
 
-def process(
-    image_dir: str, output_dir: str, superpixel_algorithm: str, num_superpixels: int
-):
+def process(image_dir: str, output_dir: str, num_superpixels: int, is_masked: bool):
     # if output_dir does not exist, create it
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -45,7 +43,10 @@ def process(
         model = get_model()
         features = (
             get_features_using_superpixels(
-                model=model, img=torch_image, super_pixel_masks=superpixels
+                model=model,
+                img=torch_image,
+                super_pixel_masks=superpixels,
+                is_masked=is_masked,
             )
             .squeeze(0)
             .cpu()
@@ -68,12 +69,15 @@ if __name__ == "__main__":
         default=25,
         help="Number of superpixels to use",
     )
+    args.add_argument(
+        "--is_masked", action="store_true", help="Mask out non-superpixels?"
+    )
 
     args = args.parse_args()
 
     process(
         image_dir=args.image_dir,
         output_dir=args.save_dir,
-        superpixel_algorithm=args.superpixel_algorithm,
         num_superpixels=args.num_superpixels,
+        is_masked=args.is_masked,
     )

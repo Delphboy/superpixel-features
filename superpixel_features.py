@@ -115,8 +115,50 @@ def _extract_pixels_from_bounding_boxes(
     return pixels
 
 
+def _extract_masked_pixels_from_bounding_boxes(
+    img: torch.Tensor, bounding_boxes: torch.Tensor, seg: torch.Tensor
+) -> torch.Tensor:
+    """
+    Extract the pixels from the image that are in the bounding boxes, masking out the pixels that are not in the superpixel
+    :param img: Image tensor of shape (b, c, h, w)
+    :param bounding_boxes: Tensor of bounding boxes of shape (b, max_seg, 4) where the bounding boxes are in the format (x_min, y_min, x_max, y_max)
+    :param seg: Superpixel segmentation tensor of shape (b, h, w)
+    :return: Tensor of pixels of shape (b, max_seg, 3, 224, 224)
+    """
+    max_seg = bounding_boxes.shape[1]
+    new_img = torch.zeros_like(img.unsqueeze(1).repeat(1, max_seg, 1, 1, 1))
+    B, max_seg, C, H, W = new_img.shape
+    pixels = torch.zeros((B, max_seg, 3, 224, 224)).to(img.device)
+
+    for b in range(B):
+        for s in range(max_seg):
+            indices = torch.where(seg[b] == s)
+            if len(indices[0]) == 0:
+                continue
+            # mask the image so that only the pixels in the superpixel are visible
+            new_img[b, s, :, indices[0], indices[1]] = img[b, :, indices[0], indices[1]]
+
+            x_min, y_min, x_max, y_max = bounding_boxes[b, s]
+            if x_max - x_min == 0 or y_max - y_min == 0:
+                continue
+
+            pixels[b, s] = F.interpolate(
+                new_img[
+                    b, s, :, y_min.int() : y_max.int(), x_min.int() : x_max.int()
+                ].unsqueeze(0),
+                size=(224, 224),
+                mode="bilinear",
+                align_corners=False,
+            )
+
+    return pixels
+
+
 def get_features_using_superpixels(
-    model: torch.nn.Module, img: torch.Tensor, super_pixel_masks: torch.Tensor
+    model: torch.nn.Module,
+    img: torch.Tensor,
+    super_pixel_masks: torch.Tensor,
+    is_masked: bool = False,
 ) -> torch.Tensor:
     """
     Given an image, create superpixel features using SLIC and ResNet101
@@ -128,7 +170,13 @@ def get_features_using_superpixels(
     super_pixel_masks = super_pixel_masks.unsqueeze(0).to(DEVICE)
 
     bounding_boxes = _get_bounding_boxes(img, super_pixel_masks)
-    pixels = _extract_pixels_from_bounding_boxes(img, bounding_boxes).to(DEVICE)
+    if is_masked:
+        pixels = _extract_masked_pixels_from_bounding_boxes(
+            img, bounding_boxes, super_pixel_masks
+        ).to(DEVICE)
+    else:
+        pixels = _extract_pixels_from_bounding_boxes(img, bounding_boxes).to(DEVICE)
+
     pixels = pixels.reshape(-1, 3, 224, 224)
     with torch.no_grad():
         features = model(pixels).squeeze(-1)
