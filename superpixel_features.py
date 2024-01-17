@@ -160,6 +160,7 @@ def get_features_using_superpixels(
     model: torch.nn.Module,
     img: torch.Tensor,
     super_pixel_masks: torch.Tensor,
+    feat_resize_dim: int = 2048,
     is_masked: bool = False,
 ) -> torch.Tensor:
     """
@@ -182,5 +183,5 @@ def get_features_using_superpixels(
     pixels = pixels.reshape(-1, 3, 224, 224)
     with torch.no_grad():
         features = model(pixels).squeeze(-1)
-    features = features.reshape(-1, bounding_boxes.shape[1], 2048)
+    features = features.reshape(-1, bounding_boxes.shape[1], feat_resize_dim)
     return features

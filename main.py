@@ -2,6 +2,7 @@ import argparse
 import logging
 import os
 
+import clip
 import numpy as np
 import torch
 import torch.nn as nn
@@ -40,17 +41,28 @@ def get_logger(save_dir: str):
 logging.info("Device: {}".format(DEVICE))
 
 
-def get_model():
+def get_model(id="resnet101"):
     global MODEL
     if MODEL is None:
-        MODEL = resnet101(ResNet101_Weights.IMAGENET1K_V1)
-        MODEL = nn.Sequential(*list(MODEL.children())[:-1])
-        MODEL.eval()
-        MODEL.to(DEVICE)
+        if id == "CLIP" or id == "clip":
+            model_id = "ViT-B/32"  # "RN101"
+            MODEL, preprocess = clip.load(model_id, device=DEVICE)
+            MODEL = MODEL.encode_image
+        else:
+            MODEL = resnet101(ResNet101_Weights.IMAGENET1K_V1)
+            MODEL = nn.Sequential(*list(MODEL.children())[:-1])
+            MODEL.eval()
+            MODEL.to(DEVICE)
     return MODEL
 
 
-def process(image_dir: str, output_dir: str, num_superpixels: int, is_masked: bool):
+def process(
+    image_dir: str,
+    output_dir: str,
+    num_superpixels: int,
+    is_masked: bool,
+    model_id: str,
+):
     # if output_dir does not exist, create it
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -63,12 +75,14 @@ def process(image_dir: str, output_dir: str, num_superpixels: int, is_masked: bo
         superpixels = get_superpixels(
             img_scikit=scikit_image, n_segments=num_superpixels
         )
-        model = get_model()
+        model = get_model(model_id)
+        feat_resize_dim = 512 if model_id == "CLIP" else 2048
         features = (
             get_features_using_superpixels(
                 model=model,
                 img=torch_image,
                 super_pixel_masks=superpixels,
+                feat_resize_dim=feat_resize_dim,
                 is_masked=is_masked,
             )
             .squeeze(0)
@@ -95,6 +109,12 @@ if __name__ == "__main__":
     args.add_argument(
         "--is_masked", action="store_true", help="Mask out non-superpixels?"
     )
+    args.add_argument(
+        "--model_id",
+        type=str,
+        default="resnet101",
+        help="Which model to use? CLIP or resnet101",
+    )
 
     args = args.parse_args()
 
@@ -105,4 +125,5 @@ if __name__ == "__main__":
         output_dir=args.save_dir,
         num_superpixels=args.num_superpixels,
         is_masked=args.is_masked,
+        model_id=args.model_id,
     )

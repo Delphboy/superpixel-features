@@ -13,7 +13,8 @@
                 "--image_dir", "/homes/hps01/superpixel-features/test_images",
                 "--save_dir", "/homes/hps01/superpixel-features/test_output/",
                 "--num_superpixels", "10",
-                "--is_masked"
+                "--is_masked",
+                "--model_id", "CLIP",
             ],
             "console": "integratedTerminal",
             "justMyCode": true
