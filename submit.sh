@@ -14,11 +14,12 @@ conda activate superpixels
 SIZE=$(echo "$SIZE" | bc)
 
 python3 main.py --image_dir /jmain02/home/J2AD007/txk47/hxs67-txk47/coco/${SET}2014/ \
-		--save_dir /jmain02/home/J2AD007/txk47/hxs67-txk47/superpixel_features/${SET}_m${SIZE} \
+		--save_dir /jmain02/home/J2AD007/txk47/hxs67-txk47/superpixel_features/CLIP/${SET}_m${SIZE} \
 		--num_superpixels ${SIZE}
+		--model_id "CLIP"
 
-python3 merge_and_clean.py --input_dir /jmain02/home/J2AD007/txk47/hxs67-txk47/superpixel_features/${SET}_m${SIZE} \
-							--output_dir /jmain02/home/J2AD007/txk47/hxs67-txk47/superpixel_features/m${SIZE}
+python3 merge_and_clean.py --input_dir /jmain02/home/J2AD007/txk47/hxs67-txk47/superpixel_features/CLIP/${SET}_m${SIZE} \
+							--output_dir /jmain02/home/J2AD007/txk47/hxs67-txk47/superpixel_features/CLIP/m${SIZE}
 
 
 # python3 main.py --image_dir /jmain02/home/J2AD007/txk47/hxs67-txk47/coco/${SET}2014/ \

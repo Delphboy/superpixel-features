@@ -112,13 +112,15 @@ def process_whole_image(
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
         model = get_model(model_id)
-        scikit_image, torch_image = load_image(os.path.join(image_dir, image))
-
-        feat_resize_dim = 512 if model_id == "CLIP" else 2048
+        _, torch_image = load_image(os.path.join(image_dir, image))
 
         # resize image to 224x224
         _transform = trans.Compose([trans.Resize((224, 224))])
         torch_image = _transform(torch_image)
+
+        # handle edge case where image is grayscale
+        if torch_image.shape[0] == 1:
+            torch_image = torch.cat([torch_image] * 3, dim=0)
 
         features = (
             model(torch_image.unsqueeze(0).to(DEVICE)).squeeze(0).cpu().detach().numpy()
