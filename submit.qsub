@@ -17,19 +17,20 @@ module load java/1.8.0_382-openjdk
 # Activate virtual environment
 source .venv/bin/activate
 
-python3 main.py --image_dir /data/PublicDataSets/Coco-2014/${SET}2014/ \
-		--save_dir /data/scratch/eey362/superpixel_features/${SET}_m${SIZE} \
-		--num_superpixels ${SIZE}
+# python3 main.py --image_dir /data/PublicDataSets/Coco-2014/${SET}2014/ \
+# 		--save_dir /data/scratch/eey362/superpixel_features/CLIP/whole_img \
+# 		--model_id "CLIP" \
+# 		--whole_img
 
-python3 merge_and_clean.py --input_dir /data/scratch/eey362/superpixel_features/${SET}_m${SIZE} \
-							--output_dir /data/scratch/eey362/superpixel_features/m${SIZE}
+python3 merge_and_clean.py --input_dir /data/scratch/eey362/superpixel_features/CLIP/whole_img \
+							--output_dir /data/scratch/eey362/superpixel_features/CLIP/whole_img
 							
 
 
 # python3 main.py --image_dir /data/PublicDataSets/Coco-2014/${SET}2014/ \
-# 		--save_dir /data/scratch/eey362/superpixel_features/masked_${SET}_m${SIZE} \
+# 		--save_dir /data/scratch/eey362/superpixel_features/CLIP/masked_${SET}_m${SIZE} \
 # 		--num_superpixels ${SIZE} \
 # 		--is_masked
 
-# python3 merge_and_clean.py --input_dir /data/scratch/eey362/superpixel_features/masked_${SET}_m${SIZE} \
-# 							--output_dir /data/scratch/eey362/superpixel_features/masked_m${SIZE}
+# python3 merge_and_clean.py --input_dir /data/scratch/eey362/superpixel_features/CLIP/masked_${SET}_m${SIZE} \
+# 							--output_dir /data/scratch/eey362/superpixel_features/CLIP/masked_m${SIZE}
