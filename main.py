@@ -2,22 +2,17 @@ import argparse
 import logging
 import os
 
-import clip
 import numpy as np
-import torch
-import torch.nn as nn
-import torchvision.transforms as trans
-from torchvision.models.resnet import ResNet101_Weights, resnet101
 
-from superpixel_features import (
-    get_features_using_superpixels,
-    get_superpixels,
-    load_image,
+from features import (
+    get_blip_superpixel_features,
+    get_blip_whole_img_features,
+    get_clip_superpixel_features,
+    get_clip_whole_img_features,
+    get_resnet_superpixel_features,
+    get_resnet_whole_img_features,
 )
-
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-MODEL = None
+from superpixels import get_superpixels, load_image
 
 LOGGER = None
 
@@ -30,32 +25,12 @@ def get_logger(save_dir: str):
         # set logging file to log.txt
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.INFO)
-        handler = logging.FileHandler(f"log-{save_dir.split('/')[-1]}.txt")
-        handler.setLevel(logging.INFO)
-        formatter = logging.Formatter("%(message)s")
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+        # handler = logging.FileHandler(f"log-{save_dir.split('/')[-1]}.txt")
+        # handler.setLevel(logging.INFO)
+        # formatter = logging.Formatter("%(message)s")
+        # logger.addHandler(handler)
         LOGGER = logger
     return LOGGER
-
-
-logging.info("Device: {}".format(DEVICE))
-
-
-def get_model(id="resnet101"):
-    global MODEL
-    if MODEL is None:
-        if id == "CLIP" or id == "clip":
-            model_id = "ViT-B/32"  # "RN101"
-            MODEL, preprocess = clip.load(model_id, device=DEVICE)
-            MODEL.eval()
-            MODEL = MODEL.encode_image
-        else:
-            MODEL = resnet101(ResNet101_Weights.IMAGENET1K_V1)
-            MODEL = nn.Sequential(*list(MODEL.children())[:-1])
-            MODEL.eval()
-            MODEL.to(DEVICE)
-    return MODEL
 
 
 def process_superpixels(
@@ -77,21 +52,30 @@ def process_superpixels(
         superpixels = get_superpixels(
             img_scikit=scikit_image, n_segments=num_superpixels
         )
-        model = get_model(model_id)
-        feat_resize_dim = 512 if model_id == "CLIP" else 2048
-        features = (
-            get_features_using_superpixels(
-                model=model,
+
+        if model_id == "CLIP":
+            features = get_clip_superpixel_features(
                 img=torch_image,
                 super_pixel_masks=superpixels,
-                feat_resize_dim=feat_resize_dim,
+                feat_resize_dim=512,
                 is_masked=is_masked,
             )
-            .squeeze(0)
-            .cpu()
-            .numpy()
-        )
+        elif model_id == "BLIP":
+            features = get_blip_superpixel_features(
+                img=torch_image,
+                super_pixel_masks=superpixels,
+                feat_resize_dim=768,
+                is_masked=is_masked,
+            )
+        else:
+            features = get_resnet_superpixel_features(
+                img=torch_image,
+                super_pixel_masks=superpixels,
+                feat_resize_dim=2048,
+                is_masked=is_masked,
+            )
 
+        features = features.squeeze(0).cpu().numpy()
         feats = {"feat": features}
         np.savez_compressed(
             os.path.join(output_dir, image.split(".")[0] + ".npz"), **feats
@@ -111,18 +95,16 @@ def process_whole_image(
     images = os.listdir(image_dir)
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
-        model = get_model(model_id)
-        scikit_image, torch_image = load_image(os.path.join(image_dir, image))
+        _, torch_image = load_image(os.path.join(image_dir, image))
 
-        feat_resize_dim = 512 if model_id == "CLIP" else 2048
+        if model_id == "CLIP":
+            features = get_clip_whole_img_features(img=torch_image)
+        elif model_id == "BLIP":
+            features = get_blip_whole_img_features(img=torch_image)
+        else:
+            features = get_resnet_whole_img_features(img=torch_image)
 
-        # resize image to 224x224
-        _transform = trans.Compose([trans.Resize((224, 224))])
-        torch_image = _transform(torch_image)
-
-        features = (
-            model(torch_image.unsqueeze(0).to(DEVICE)).squeeze(0).cpu().detach().numpy()
-        )
+        features = features.squeeze(0).cpu().detach().numpy()
 
         feats = {"feat": features}
         np.savez_compressed(
