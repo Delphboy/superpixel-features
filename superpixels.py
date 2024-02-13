@@ -154,34 +154,3 @@ def _extract_masked_pixels_from_bounding_boxes(
             )
 
     return pixels
-
-
-def get_features_using_superpixels(
-    model: torch.nn.Module,
-    img: torch.Tensor,
-    super_pixel_masks: torch.Tensor,
-    feat_resize_dim: int = 2048,
-    is_masked: bool = False,
-) -> torch.Tensor:
-    """
-    Given an image, create superpixel features using SLIC and ResNet101
-    :param img: Image tensor of shape (b, c, h, w)
-    :return: Tensor of superpixel features of shape (b, n_segments, 2048)
-    """
-    # Add batch dimension
-    img = img.unsqueeze(0).to(DEVICE)
-    super_pixel_masks = super_pixel_masks.unsqueeze(0).to(DEVICE)
-
-    bounding_boxes = _get_bounding_boxes(img, super_pixel_masks)
-    if is_masked:
-        pixels = _extract_masked_pixels_from_bounding_boxes(
-            img, bounding_boxes, super_pixel_masks
-        ).to(DEVICE)
-    else:
-        pixels = _extract_pixels_from_bounding_boxes(img, bounding_boxes).to(DEVICE)
-
-    pixels = pixels.reshape(-1, 3, 224, 224)
-    with torch.no_grad():
-        features = model(pixels).squeeze(-1)
-    features = features.reshape(-1, bounding_boxes.shape[1], feat_resize_dim)
-    return features

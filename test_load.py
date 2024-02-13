@@ -9,6 +9,8 @@ feat_dim = 768
 def get(image_locations, index):
     img_path = image_locations[index]
     image = np.load(img_path)["feat"]
+    bbox = np.load(img_path)["bbox"]
+    assert image.shape[0] == bbox.shape[0]
     image = torch.from_numpy(image)
 
     # if image.shape[0] < 50 then we need to pad it with zeros

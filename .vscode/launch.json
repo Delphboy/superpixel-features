@@ -34,7 +34,7 @@
             "program": "${workspaceFolder}/main.py",
             "args": [
                 "--image_dir", "/import/gameai-01/eey362/datasets/flickr8k/images/",
-                "--save_dir", "/import/gameai-01/eey362/datasets/flickr8k/blip/",
+                "--save_dir", "/import/gameai-01/eey362/datasets/flickr8k/blip-whole/",
                 "--num_superpixels", "25",
                 "--model_id", "BLIP",
                 "--whole_img",

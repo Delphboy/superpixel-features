@@ -69,7 +69,7 @@ def get_resnet_superpixel_features(
     with torch.no_grad():
         features = model(pixels).squeeze(-1)
     features = features.reshape(-1, bounding_boxes.shape[1], feat_resize_dim)
-    return features
+    return features, bounding_boxes
 
 
 def get_resnet_whole_img_features(
@@ -141,7 +141,7 @@ def get_clip_superpixel_features(
     with torch.no_grad():
         features = model(pixels).squeeze(-1)
     features = features.reshape(-1, bounding_boxes.shape[1], feat_resize_dim)
-    return features
+    return features, bounding_boxes
 
 
 def get_clip_whole_img_features(
@@ -207,7 +207,10 @@ def get_blip_superpixel_features(
     sample = {"image": pixels}
     with torch.no_grad():
         features = model.extract_features(sample, mode="image")
-    return features.image_embeds[:, 0, :].unsqueeze(0)
+    assert (
+        features.image_embeds[:, 0, :].unsqueeze(0).shape[1] == bounding_boxes.shape[1]
+    ), "Mismatch in number of superpixels and bboxes"
+    return features.image_embeds[:, 0, :].unsqueeze(0), bounding_boxes
 
 
 def get_blip_whole_img_features(

@@ -54,21 +54,21 @@ def process_superpixels(
         )
 
         if model_id == "CLIP":
-            features = get_clip_superpixel_features(
+            features, bounding_boxes = get_clip_superpixel_features(
                 img=torch_image,
                 super_pixel_masks=superpixels,
                 feat_resize_dim=512,
                 is_masked=is_masked,
             )
         elif model_id == "BLIP":
-            features = get_blip_superpixel_features(
+            features, bounding_boxes = get_blip_superpixel_features(
                 img=torch_image,
                 super_pixel_masks=superpixels,
                 feat_resize_dim=768,
                 is_masked=is_masked,
             )
         else:
-            features = get_resnet_superpixel_features(
+            features, bounding_boxes = get_resnet_superpixel_features(
                 img=torch_image,
                 super_pixel_masks=superpixels,
                 feat_resize_dim=2048,
@@ -76,7 +76,8 @@ def process_superpixels(
             )
 
         features = features.squeeze(0).cpu().numpy()
-        feats = {"feat": features}
+        bounding_boxes = bounding_boxes.squeeze(0).cpu().numpy()
+        feats = {"feat": features, "bbox": bounding_boxes}
         np.savez_compressed(
             os.path.join(output_dir, image.split(".")[0] + ".npz"), **feats
         )
