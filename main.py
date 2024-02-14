@@ -3,6 +3,7 @@ import logging
 import os
 
 import numpy as np
+import torch
 
 from features import (
     get_blip_superpixel_features,
@@ -46,6 +47,8 @@ def process_superpixels(
 
     # Get the images in the directory
     images = os.listdir(image_dir)
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    LOGGER.info(f"Device set to {dev}")
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
         scikit_image, torch_image = load_image(os.path.join(image_dir, image))
@@ -94,6 +97,8 @@ def process_whole_image(
 
     # Get the images in the directory
     images = os.listdir(image_dir)
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    LOGGER.info(f"Device set to {dev}")
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
         _, torch_image = load_image(os.path.join(image_dir, image))
