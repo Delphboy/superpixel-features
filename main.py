@@ -178,8 +178,8 @@ if __name__ == "__main__":
     args.add_argument(
         "--model_id",
         type=str,
-        default="resnet101",
-        help="Which model to use? CLIP or resnet101",
+        default="ResNet",
+        help="Which model to use? BLIP, CLIP or ResNet",
     )
     args.add_argument(
         "--whole_img", action="store_true", help="Generate whole image features"
