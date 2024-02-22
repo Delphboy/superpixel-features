@@ -20,7 +20,7 @@ Generate features for superpixels and patches using pretrained models. Features 
 | `--is_masked` | (Flag) Black out pixels in the superpixel bounding box that aren't in the original superpixel |
 | `--patches` | (Flag) Generate patch features instead of superpixel features |
 
-> [!WARNING] `--patches`
+> [!WARNING]
 > The `--patches` flag will generate $16 \times 16$ patches for an image that is resized to $224 \times 224$, yielding $14 \times 14 = 196$ patches
 
 ## Example
