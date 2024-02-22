@@ -72,6 +72,21 @@ def get_resnet_superpixel_features(
     return features, bounding_boxes
 
 
+def get_resnet_patch_features(patches, feat_resize_dim: int = 2048):
+    """
+    Given an image, create patch features using ResNet101
+    :param patches: Patches tensor of shape (b, n_patches, c, h, w)
+    :return: Tensor of patch features of shape (b, n_patches, 2048)
+    """
+    model, preprocess = _get_resnet()
+    patches = patches.to(DEVICE)
+    patches = preprocess(patches)
+    with torch.no_grad():
+        features = model(patches).squeeze(-1)
+    features = features.reshape(-1, patches.shape[0], feat_resize_dim)
+    return features
+
+
 def get_resnet_whole_img_features(
     img: torch.Tensor,
 ) -> torch.Tensor:
@@ -85,7 +100,7 @@ def get_resnet_whole_img_features(
 
     with torch.no_grad():
         features = model(img).squeeze(-1)
-    return features
+    return features.squeeze(-1)
 
 
 ########################################################################################

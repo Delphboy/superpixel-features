@@ -44,17 +44,6 @@ def _run_slic(
     return segments_slic
 
 
-def get_superpixels(img_scikit, n_segments: Optional[int] = 25):
-    """
-    Get the superpixels of an image using SLIC
-    :param img_scikit: scikit image
-    :param n_segments: Number of superpixels
-    :return: Superpixel segmentation
-    """
-    segments_slic = _run_slic(img_scikit, n_segments=n_segments)
-    return torch.from_numpy(segments_slic)
-
-
 def _get_bounding_boxes(img: torch.Tensor, seg: torch.Tensor) -> torch.Tensor:
     """
     Given an image and its superpixel segmentation, create bounding boxes
@@ -154,3 +143,41 @@ def _extract_masked_pixels_from_bounding_boxes(
             )
 
     return pixels
+
+
+def get_superpixels(img_scikit, n_segments: Optional[int] = 25):
+    """
+    Get the superpixels of an image using SLIC
+    :param img_scikit: scikit image
+    :param n_segments: Number of superpixels
+    :return: Superpixel segmentation
+    """
+    segments_slic = _run_slic(img_scikit, n_segments=n_segments)
+    return torch.from_numpy(segments_slic)
+
+
+def get_patches(img_torch):
+    """
+    Get 16x16 patches of an image
+    :param img_torch: torch image
+    :return: Patches
+    """
+    img_torch = img_torch.to(DEVICE)
+    img_torch = img_torch.unsqueeze(0)
+
+    preprocess = trans.Compose(
+        [
+            trans.Resize((224, 224)),
+            trans.CenterCrop((224, 224)),
+            trans.Normalize(
+                mean=(0.48145466, 0.4578275, 0.40821073),
+                std=(0.26862954, 0.26130258, 0.27577711),
+            ),
+        ]
+    )
+    img_torch = preprocess(img_torch)
+
+    patches = F.unfold(img_torch, kernel_size=16, stride=16)
+    patches = patches.permute(0, 2, 1)
+    patches = patches.reshape(-1, 3, 16, 16)
+    return patches

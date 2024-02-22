@@ -9,10 +9,11 @@ from features import (
     get_blip_whole_img_features,
     get_clip_superpixel_features,
     get_clip_whole_img_features,
+    get_resnet_patch_features,
     get_resnet_superpixel_features,
     get_resnet_whole_img_features,
 )
-from superpixels import get_superpixels, load_image
+from superpixels import get_patches, get_superpixels, load_image
 
 LOGGER = None
 
@@ -83,6 +84,49 @@ def process_superpixels(
         )
 
 
+def process_patches(
+    image_dir: str,
+    output_dir: str,
+    model_id: str,
+):
+    # if output_dir does not exist, create it
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Get the images in the directory
+    images = os.listdir(image_dir)
+    for i, image in enumerate(images):
+        LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
+        scikit_image, torch_image = load_image(os.path.join(image_dir, image))
+        patches = get_patches(img_torch=torch_image)
+
+        if model_id == "CLIP":
+            features, bounding_boxes = get_clip_superpixel_features(
+                img=torch_image,
+                super_pixel_masks=patches,
+                feat_resize_dim=512,
+                is_masked=False,
+            )
+        elif model_id == "BLIP":
+            features, bounding_boxes = get_blip_superpixel_features(
+                img=torch_image,
+                super_pixel_masks=patches,
+                feat_resize_dim=768,
+                is_masked=False,
+            )
+        else:
+            features = get_resnet_patch_features(
+                patches=patches,
+                feat_resize_dim=2048,
+            )
+
+        features = features.squeeze(0).cpu().numpy()
+        feats = {"feat": features}
+        np.savez_compressed(
+            os.path.join(output_dir, image.split(".")[0] + ".npz"), **feats
+        )
+
+
 def process_whole_image(
     image_dir: str,
     output_dir: str,
@@ -135,6 +179,11 @@ if __name__ == "__main__":
     args.add_argument(
         "--whole_img", action="store_true", help="Generate whole image features"
     )
+    args.add_argument(
+        "--patches",
+        action="store_true",
+        help="Generate patch features instead of superpixel features",
+    )
 
     args = args.parse_args()
 
@@ -142,6 +191,12 @@ if __name__ == "__main__":
 
     if args.whole_img:
         process_whole_image(
+            image_dir=args.image_dir,
+            output_dir=args.save_dir,
+            model_id=args.model_id,
+        )
+    elif args.patches:
+        process_patches(
             image_dir=args.image_dir,
             output_dir=args.save_dir,
             model_id=args.model_id,
