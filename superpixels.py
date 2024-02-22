@@ -22,6 +22,9 @@ def load_image(image_path: str):
     img_scikit = img_as_float(img)
 
     img_torch = transforms(img)
+    # handle edge case where torch_img only has 1 channel
+    if img_torch.shape[0] == 1:
+        img_torch = img_torch.repeat(3, 1, 1)
     return img_scikit, img_torch
 
 
