@@ -6,8 +6,10 @@ import numpy as np
 import torch
 
 from features import (
+    get_blip_patch_features,
     get_blip_superpixel_features,
     get_blip_whole_img_features,
+    get_clip_patch_features,
     get_clip_superpixel_features,
     get_clip_whole_img_features,
     get_resnet_patch_features,
@@ -104,18 +106,14 @@ def process_patches(
         patches = get_patches(img_torch=torch_image)
 
         if model_id == "CLIP":
-            features, bounding_boxes = get_clip_superpixel_features(
-                img=torch_image,
-                super_pixel_masks=patches,
+            features = get_clip_patch_features(
+                patches=patches,
                 feat_resize_dim=512,
-                is_masked=False,
             )
         elif model_id == "BLIP":
-            features, bounding_boxes = get_blip_superpixel_features(
-                img=torch_image,
-                super_pixel_masks=patches,
+            features = get_blip_patch_features(
+                patches=patches,
                 feat_resize_dim=768,
-                is_masked=False,
             )
         else:
             features = get_resnet_patch_features(

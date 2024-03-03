@@ -159,6 +159,21 @@ def get_clip_superpixel_features(
     return features, bounding_boxes
 
 
+def get_clip_patch_features(patches, feat_resize_dim: int = 2048):
+    """
+    Given an image, create patch features using CLIP
+    :param patches: Patches tensor of shape (b, n_patches, c, h, w)
+    :return: Tensor of patch features of shape (b, n_patches, 2048)
+    """
+    model, preprocess = _get_clip()
+    patches = patches.to(DEVICE)
+    patches = preprocess(patches)
+    with torch.no_grad():
+        features = model(patches).squeeze(-1)
+    features = features.reshape(-1, patches.shape[0], feat_resize_dim)
+    return features
+
+
 def get_clip_whole_img_features(
     img: torch.Tensor,
 ) -> torch.Tensor:
@@ -208,7 +223,6 @@ def get_blip_superpixel_features(
     # Add batch dimension
     img = img.unsqueeze(0).to(DEVICE)
     super_pixel_masks = super_pixel_masks.unsqueeze(0).to(DEVICE)
-
     bounding_boxes = _get_bounding_boxes(img, super_pixel_masks)
     if is_masked:
         pixels = _extract_masked_pixels_from_bounding_boxes(
@@ -222,10 +236,27 @@ def get_blip_superpixel_features(
     sample = {"image": pixels}
     with torch.no_grad():
         features = model.extract_features(sample, mode="image")
+
     assert (
         features.image_embeds[:, 0, :].unsqueeze(0).shape[1] == bounding_boxes.shape[1]
     ), "Mismatch in number of superpixels and bboxes"
     return features.image_embeds[:, 0, :].unsqueeze(0), bounding_boxes
+
+
+def get_blip_patch_features(patches, feat_resize_dim: int = 2048):
+    """
+    Given an image, create patch features using BLIP
+    :param patches: Patches tensor of shape (b, n_patches, c, h, w)
+    :return: Tensor of patch features of shape (b, n_patches, 2048)
+    """
+    model, preprocess = _get_blip()
+    patches = patches.to(DEVICE)
+    patches = preprocess(patches)
+    sample = {"image": patches}
+    with torch.no_grad():
+        features = model.extract_features(sample, mode="image")
+    features = features.image_embeds[:, 0, :].unsqueeze(0)
+    return features
 
 
 def get_blip_whole_img_features(
