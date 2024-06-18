@@ -10,11 +10,11 @@
             "request": "launch",
             "program": "${workspaceFolder}/main.py",
             "args": [
-                "--image_dir", "/homes/hps01/superpixel-features/test_images",
-                "--save_dir", "/homes/hps01/superpixel-features/test_output/",
-                "--is_masked",
-                "--model_id", "BLIP",
+                "--image_dir", "${workspaceFolder}/test_inp/",
+                "--save_dir", "${workspaceFolder}/test_out/",
                 "--num_superpixels", "25",
+                "--algorithm", "SLIC",
+                "--feature_extractor", "BLIP",
             ],
             "console": "integratedTerminal",
             "justMyCode": true
@@ -26,51 +26,6 @@
             "program": "${workspaceFolder}/test_load.py",
             "console": "integratedTerminal",
             "justMyCode": true
-        },
-        {
-            "name": "Flickr8k - Superpixels",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "args": [
-                "--image_dir", "/import/gameai-01/eey362/datasets/flickr8k/images/",
-                "--save_dir", "/import/gameai-01/eey362/datasets/flickr8k/BLIP/m50",
-                "--num_superpixels", "50",
-                "--model_id", "BLIP",
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Flickr8k - Patches",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "args": [
-                "--image_dir",
-                "/import/gameai-01/eey362/datasets/flickr8k/images/",
-                "--save_dir",
-                "/import/gameai-01/eey362/datasets/flickr8k/BLIP/resnet-patches",
-                "--model_id", "ResNet",
-                "--patches"
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        {
-            "name": "Flickr8k - Whole",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/main.py",
-            "args": [
-                "--image_dir", "/import/gameai-01/eey362/datasets/flickr8k/images/",
-                "--save_dir", "/import/gameai-01/eey362/datasets/flickr8k/ResNet/whole",
-                "--model_id", "ResNet",
-                "--whole_img",
-            ],
-            "console": "integratedTerminal",
-            "justMyCode": true
-        },
-        
+        },        
     ]
 }

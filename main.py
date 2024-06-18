@@ -21,18 +21,12 @@ from superpixels import get_patches, get_superpixels, load_image
 LOGGER = None
 
 
-def get_logger(save_dir: str):
+def get_logger():
     global LOGGER
     if LOGGER is None:
-        # set up logger
         logging.basicConfig(level=logging.INFO)
-        # set logging file to log.txt
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.INFO)
-        # handler = logging.FileHandler(f"log-{save_dir.split('/')[-1]}.txt")
-        # handler.setLevel(logging.INFO)
-        # formatter = logging.Formatter("%(message)s")
-        # logger.addHandler(handler)
         LOGGER = logger
     return LOGGER
 
@@ -41,13 +35,9 @@ def process_superpixels(
     image_dir: str,
     output_dir: str,
     num_superpixels: int,
-    is_masked: bool,
     model_id: str,
+    superpixel_algo: str = "SLIC",
 ):
-    # if output_dir does not exist, create it
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
     # Get the images in the directory
     images = os.listdir(image_dir)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -56,7 +46,7 @@ def process_superpixels(
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
         scikit_image, torch_image = load_image(os.path.join(image_dir, image))
         superpixels = get_superpixels(
-            img_scikit=scikit_image, n_segments=num_superpixels
+            img_scikit=scikit_image, n_segments=num_superpixels, algo=superpixel_algo
         )
 
         if model_id == "CLIP":
@@ -64,21 +54,63 @@ def process_superpixels(
                 img=torch_image,
                 super_pixel_masks=superpixels,
                 feat_resize_dim=512,
-                is_masked=is_masked,
             )
         elif model_id == "BLIP":
             features, bounding_boxes = get_blip_superpixel_features(
                 img=torch_image,
                 super_pixel_masks=superpixels,
                 feat_resize_dim=768,
-                is_masked=is_masked,
             )
         else:
             features, bounding_boxes = get_resnet_superpixel_features(
                 img=torch_image,
                 super_pixel_masks=superpixels,
                 feat_resize_dim=2048,
-                is_masked=is_masked,
+            )
+
+        features = features.squeeze(0).cpu().numpy()
+        bounding_boxes = bounding_boxes.squeeze(0).cpu().numpy()
+        feats = {"feat": features, "bbox": bounding_boxes}
+        np.savez_compressed(
+            os.path.join(output_dir, image.split(".")[0] + ".npz"), **feats
+        )
+
+
+def process_rag(
+    image_dir: str,
+    output_dir: str,
+    num_superpixels: int,
+    model_id: str,
+    superpixel_algo: str = "SLIC",
+):
+    # Get the images in the directory
+    images = os.listdir(image_dir)
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    LOGGER.info(f"Device set to {dev}")
+    for i, image in enumerate(images):
+        LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
+        scikit_image, torch_image = load_image(os.path.join(image_dir, image))
+        superpixels = get_superpixels(
+            img_scikit=scikit_image, n_segments=num_superpixels, algo=superpixel_algo
+        )
+
+        if model_id == "CLIP":
+            features, bounding_boxes = get_clip_superpixel_features(
+                img=torch_image,
+                super_pixel_masks=superpixels,
+                feat_resize_dim=512,
+            )
+        elif model_id == "BLIP":
+            features, bounding_boxes = get_blip_superpixel_features(
+                img=torch_image,
+                super_pixel_masks=superpixels,
+                feat_resize_dim=768,
+            )
+        else:
+            features, bounding_boxes = get_resnet_superpixel_features(
+                img=torch_image,
+                super_pixel_masks=superpixels,
+                feat_resize_dim=2048,
             )
 
         features = features.squeeze(0).cpu().numpy()
@@ -94,10 +126,6 @@ def process_patches(
     output_dir: str,
     model_id: str,
 ):
-    # if output_dir does not exist, create it
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
     # Get the images in the directory
     images = os.listdir(image_dir)
     for i, image in enumerate(images):
@@ -133,10 +161,6 @@ def process_whole_image(
     output_dir: str,
     model_id: str,
 ):
-    # if output_dir does not exist, create it
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
-
     # Get the images in the directory
     images = os.listdir(image_dir)
     dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -164,51 +188,53 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument("--image_dir", type=str, required=True, help="Path to image dir")
     args.add_argument("--save_dir", type=str, required=True, help="Path to save dir")
-    args.add_argument(
-        "--num_superpixels",
-        type=int,
-        default=25,
-        help="Number of superpixels to use",
-    )
-    args.add_argument(
-        "--is_masked", action="store_true", help="Mask out non-superpixels?"
-    )
-    args.add_argument(
-        "--model_id",
-        type=str,
-        default="ResNet",
-        help="Which model to use? BLIP, CLIP or ResNet",
-    )
-    args.add_argument(
-        "--whole_img", action="store_true", help="Generate whole image features"
-    )
-    args.add_argument(
-        "--patches",
-        action="store_true",
-        help="Generate patch features instead of superpixel features",
-    )
+    
+    # Segmentation options
+    args.add_argument("--num_superpixels", type=int, default=25, help="Number of superpixels to use")
+    args.add_argument("--algorithm", type=str, default="SLIC", choices=["SLIC", "watershed"], help="Superpixel algorithm to use")
+    args.add_argument("--rag",action="store_true",help="Generate a region adjacency graph for superpixels")
+    
+    args.add_argument("--whole_img", action="store_true", help="Generate whole image features")
+    args.add_argument("--patches", action="store_true", help="Generate patch features instead of superpixel features")
+
+    # Model options
+    args.add_argument("--feature_extractor", type=str, default="BLIP", choices=["BLIP", "CLIP", "ResNet"], help="Which model to use for feature extraction?")
 
     args = args.parse_args()
+    get_logger()
 
-    get_logger(args.save_dir)
+    # Sanity Checks
+    if not os.path.exists(args.image_dir):
+        raise FileNotFoundError(f"Image directory {args.image_dir} not found.")
+    if not os.path.exists(args.save_dir):
+        os.makedirs(args.save_dir)
+
+    if args.whole_img and args.patches:
+        raise ValueError("Cannot generate both whole image and patch features at the same time.")
+    
+    if (args.rag and args.patches) or (args.rag and args.whole_img):
+        raise ValueError("Cannot generate RAG features with patches or whole image features.")
+    
 
     if args.whole_img:
         process_whole_image(
             image_dir=args.image_dir,
             output_dir=args.save_dir,
-            model_id=args.model_id,
+            model_id=args.feature_extractor,
         )
     elif args.patches:
         process_patches(
             image_dir=args.image_dir,
             output_dir=args.save_dir,
-            model_id=args.model_id,
+            model_id=args.feature_extractor,
         )
+    elif args.rag:
+        raise NotImplementedError("RAG not implemented yet")
     else:
         process_superpixels(
             image_dir=args.image_dir,
             output_dir=args.save_dir,
             num_superpixels=args.num_superpixels,
-            is_masked=args.is_masked,
-            model_id=args.model_id,
+            model_id=args.feature_extractor,
+            superpixel_algo=args.algorithm
         )

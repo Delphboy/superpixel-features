@@ -1,5 +1,3 @@
-from typing import Optional
-
 import clip
 import torch
 import torch.nn as nn
@@ -8,7 +6,6 @@ from lavis.models import load_model_and_preprocess
 from torchvision.models.resnet import ResNet101_Weights, resnet101
 
 from superpixels import (
-    _extract_masked_pixels_from_bounding_boxes,
     _extract_pixels_from_bounding_boxes,
     _get_bounding_boxes,
 )
@@ -44,7 +41,6 @@ def get_resnet_superpixel_features(
     img: torch.Tensor,
     super_pixel_masks: torch.Tensor,
     feat_resize_dim: int = 2048,
-    is_masked: bool = False,
 ) -> torch.Tensor:
     """
     Given an image, create superpixel features using SLIC and ResNet101
@@ -57,12 +53,7 @@ def get_resnet_superpixel_features(
     super_pixel_masks = super_pixel_masks.unsqueeze(0).to(DEVICE)
 
     bounding_boxes = _get_bounding_boxes(img, super_pixel_masks)
-    if is_masked:
-        pixels = _extract_masked_pixels_from_bounding_boxes(
-            img, bounding_boxes, super_pixel_masks
-        ).to(DEVICE)
-    else:
-        pixels = _extract_pixels_from_bounding_boxes(img, bounding_boxes).to(DEVICE)
+    pixels = _extract_pixels_from_bounding_boxes(img, bounding_boxes).to(DEVICE)
 
     pixels = pixels.reshape(-1, 3, 224, 224)
     pixels = preprocess(pixels)
@@ -131,7 +122,6 @@ def get_clip_superpixel_features(
     img: torch.Tensor,
     super_pixel_masks: torch.Tensor,
     feat_resize_dim: int = 2048,
-    is_masked: bool = False,
 ) -> torch.Tensor:
     """
     Given an image, create superpixel features using SLIC and ResNet101
@@ -144,12 +134,7 @@ def get_clip_superpixel_features(
     super_pixel_masks = super_pixel_masks.unsqueeze(0).to(DEVICE)
 
     bounding_boxes = _get_bounding_boxes(img, super_pixel_masks)
-    if is_masked:
-        pixels = _extract_masked_pixels_from_bounding_boxes(
-            img, bounding_boxes, super_pixel_masks
-        ).to(DEVICE)
-    else:
-        pixels = _extract_pixels_from_bounding_boxes(img, bounding_boxes).to(DEVICE)
+    pixels = _extract_pixels_from_bounding_boxes(img, bounding_boxes).to(DEVICE)
 
     pixels = pixels.reshape(-1, 3, 224, 224)
     pixels = preprocess(pixels)
@@ -212,7 +197,6 @@ def get_blip_superpixel_features(
     img: torch.Tensor,
     super_pixel_masks: torch.Tensor,
     feat_resize_dim: int = 2048,
-    is_masked: bool = False,
 ) -> torch.Tensor:
     """
     Given an image, create superpixel features using SLIC and ResNet101
@@ -224,12 +208,7 @@ def get_blip_superpixel_features(
     img = img.unsqueeze(0).to(DEVICE)
     super_pixel_masks = super_pixel_masks.unsqueeze(0).to(DEVICE)
     bounding_boxes = _get_bounding_boxes(img, super_pixel_masks)
-    if is_masked:
-        pixels = _extract_masked_pixels_from_bounding_boxes(
-            img, bounding_boxes, super_pixel_masks
-        ).to(DEVICE)
-    else:
-        pixels = _extract_pixels_from_bounding_boxes(img, bounding_boxes).to(DEVICE)
+    pixels = _extract_pixels_from_bounding_boxes(img, bounding_boxes).to(DEVICE)
 
     pixels = pixels.reshape(-1, 3, 224, 224)
     pixels = preprocess(pixels)

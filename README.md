@@ -5,11 +5,13 @@ Generate features for superpixels and patches using pretrained models. Features 
 ## Dependencies
 
 - PyTorch
+- PyTorch Geometric
 - Scikit Learn Image
 - OpenAI CLIP
 - Salesforce LAVIS
 
 ## Parameters
+
 | Name | Description |
 |--|--|
 | `--image_dir` | The directory containnig image inputs |

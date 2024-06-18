@@ -4,7 +4,7 @@ import torch
 import torch.nn.functional as F
 import torchvision.transforms as trans
 from PIL import Image
-from skimage.segmentation import slic
+from skimage.segmentation import slic, quickshift, felzenszwalb, watershed
 from skimage.util import img_as_float
 
 transforms = trans.Compose([trans.ToTensor()])
@@ -26,25 +26,6 @@ def load_image(image_path: str):
     if img_torch.shape[0] == 1:
         img_torch = img_torch.repeat(3, 1, 1)
     return img_scikit, img_torch
-
-
-def _run_slic(
-    img,
-    n_segments: Optional[int] = 25,
-    compactness: Optional[float] = 10.0,
-    sigma: Optional[float] = 1.0,
-    start_label: Optional[int] = 0,
-):
-    channel_axis = -1 if img.ndim == 3 else None
-    segments_slic = slic(
-        img,
-        n_segments=n_segments,
-        compactness=compactness,
-        sigma=sigma,
-        start_label=start_label,
-        channel_axis=channel_axis,
-    )
-    return segments_slic
 
 
 def _get_bounding_boxes(img: torch.Tensor, seg: torch.Tensor) -> torch.Tensor:
@@ -108,55 +89,49 @@ def _extract_pixels_from_bounding_boxes(
 
     return pixels
 
+def _run_slic(
+    img,
+    n_segments: int=25,
+    compactness: float=10.0,
+    sigma: float=1.0,
+    start_label: int=0,
+):
+    channel_axis = -1 if img.ndim == 3 else None
+    segments_slic = slic(
+        img,
+        n_segments=n_segments,
+        compactness=compactness,
+        sigma=sigma,
+        start_label=start_label,
+        channel_axis=channel_axis,
+    )
+    return segments_slic
 
-def _extract_masked_pixels_from_bounding_boxes(
-    img: torch.Tensor, bounding_boxes: torch.Tensor, seg: torch.Tensor
-) -> torch.Tensor:
-    """
-    Extract the pixels from the image that are in the bounding boxes, masking out the pixels that are not in the superpixel
-    :param img: Image tensor of shape (b, c, h, w)
-    :param bounding_boxes: Tensor of bounding boxes of shape (b, max_seg, 4) where the bounding boxes are in the format (x_min, y_min, x_max, y_max)
-    :param seg: Superpixel segmentation tensor of shape (b, h, w)
-    :return: Tensor of pixels of shape (b, max_seg, 3, 224, 224)
-    """
-    max_seg = bounding_boxes.shape[1]
-    new_img = torch.zeros_like(img.unsqueeze(1).repeat(1, max_seg, 1, 1, 1))
-    B, max_seg, C, H, W = new_img.shape
-    pixels = torch.zeros((B, max_seg, 3, 224, 224)).to(img.device)
-
-    for b in range(B):
-        for s in range(max_seg):
-            indices = torch.where(seg[b] == s)
-            if len(indices[0]) == 0:
-                continue
-            # mask the image so that only the pixels in the superpixel are visible
-            new_img[b, s, :, indices[0], indices[1]] = img[b, :, indices[0], indices[1]]
-
-            x_min, y_min, x_max, y_max = bounding_boxes[b, s]
-            if x_max - x_min == 0 or y_max - y_min == 0:
-                continue
-
-            pixels[b, s] = F.interpolate(
-                new_img[
-                    b, s, :, y_min.int() : y_max.int(), x_min.int() : x_max.int()
-                ].unsqueeze(0),
-                size=(224, 224),
-                mode="bilinear",
-                align_corners=False,
-            )
-
-    return pixels
+def _run_watershed(img,
+                   n_segments:int=25):
+    segments = watershed(
+        img,
+        markers=n_segments
+    )
+    return segments
 
 
-def get_superpixels(img_scikit, n_segments: Optional[int] = 25):
+# TODO: Add more superpixel algorithms
+def get_superpixels(img_scikit, n_segments: int=25, algo: str = "SLIC"):
     """
     Get the superpixels of an image using SLIC
     :param img_scikit: scikit image
     :param n_segments: Number of superpixels
     :return: Superpixel segmentation
     """
-    segments_slic = _run_slic(img_scikit, n_segments=n_segments)
-    return torch.from_numpy(segments_slic)
+    if algo == "SLIC":
+        segments = _run_slic(img_scikit, n_segments=n_segments)
+    elif algo == "watershed":
+        segments = _run_watershed(img_scikit, n_segments=n_segments)
+    else:
+        raise ValueError(f"Algorithm {algo} not supported.")
+    
+    return torch.from_numpy(segments)
 
 
 def get_patches(img_torch):

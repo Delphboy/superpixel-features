@@ -23,8 +23,8 @@ def get(image_locations, index):
 
 if __name__ == "__main__":
     # Get the files in test_output and store them in a list
-    image_locations = os.listdir("test_output")
-    image_locations = [os.path.join("test_output", i) for i in image_locations]
+    image_locations = os.listdir("test_out")
+    image_locations = [os.path.join("test_out", i) for i in image_locations]
 
     for i in range(len(image_locations)):
         assert get(image_locations, i).shape == (50, feat_dim)
