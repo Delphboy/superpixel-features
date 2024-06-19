@@ -1,10 +1,8 @@
-from typing import Optional
-
 import torch
 import torch.nn.functional as F
 import torchvision.transforms as trans
 from PIL import Image
-from skimage.segmentation import slic, quickshift, felzenszwalb, watershed
+from skimage.segmentation import slic, watershed
 from skimage.util import img_as_float
 
 transforms = trans.Compose([trans.ToTensor()])
@@ -107,6 +105,7 @@ def _run_slic(
     )
     return segments_slic
 
+
 def _run_watershed(img,
                    n_segments:int=25):
     segments = watershed(
@@ -116,7 +115,6 @@ def _run_watershed(img,
     return segments
 
 
-# TODO: Add more superpixel algorithms
 def get_superpixels(img_scikit, n_segments: int=25, algo: str = "SLIC"):
     """
     Get the superpixels of an image using SLIC
@@ -125,9 +123,10 @@ def get_superpixels(img_scikit, n_segments: int=25, algo: str = "SLIC"):
     :return: Superpixel segmentation
     """
     if algo == "SLIC":
-        segments = _run_slic(img_scikit, n_segments=n_segments)
+        segments = _run_slic(img_scikit, n_segments=n_segments) # [X,Y]
     elif algo == "watershed":
-        segments = _run_watershed(img_scikit, n_segments=n_segments)
+        segments = _run_watershed(img_scikit, n_segments=n_segments) # [X,Y,C]
+        segments = segments[:,:,0]
     else:
         raise ValueError(f"Algorithm {algo} not supported.")
     

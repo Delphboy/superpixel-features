@@ -3,7 +3,7 @@
 #$ -l h_vmem=11G
 #$ -pe smp 8
 #$ -l gpu=1
-#$ -cwd 
+#$ -wd /data/scratch/eey362/superpixel-features
 #$ -j y
 #$ -l cluster=andrena
 
@@ -22,8 +22,8 @@ model_id="BLIP"
 # Generate whole image features
 python3 main.py --image_dir /data/PublicDataSets/Coco-2014/${SET}2014/ \
 		--save_dir /data/scratch/eey362/superpixel_features/${model_id}/whole_img \
-		--model_id ${model_id} \
+		--feature_extractor ${model_id} \
 		--whole_img
 
-python3 merge_and_clean.py --input_dir /data/scratch/eey362/superpixel_features/${model_id}/whole_img \
+python3 merge_and_clean.py --save_dir /data/scratch/eey362/superpixel_features/${model_id}/whole_img \
 							--output_dir /data/scratch/eey362/superpixel_features/${model_id}/whole_img

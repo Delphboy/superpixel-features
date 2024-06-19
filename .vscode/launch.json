@@ -13,8 +13,9 @@
                 "--image_dir", "${workspaceFolder}/test_inp/",
                 "--save_dir", "${workspaceFolder}/test_out/",
                 "--num_superpixels", "25",
-                "--algorithm", "SLIC",
+                "--algorithm", "watershed",
                 "--feature_extractor", "BLIP",
+                "--rag"
             ],
             "console": "integratedTerminal",
             "justMyCode": true

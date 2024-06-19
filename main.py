@@ -17,6 +17,7 @@ from features import (
     get_resnet_whole_img_features,
 )
 from superpixels import get_patches, get_superpixels, load_image
+from rag import create_rag_edges
 
 LOGGER = None
 
@@ -115,7 +116,8 @@ def process_rag(
 
         features = features.squeeze(0).cpu().numpy()
         bounding_boxes = bounding_boxes.squeeze(0).cpu().numpy()
-        feats = {"feat": features, "bbox": bounding_boxes}
+        edges = create_rag_edges(scikit_image, superpixels.cpu().numpy())
+        feats = {"feat": features, "bbox": bounding_boxes, "rag": edges}
         np.savez_compressed(
             os.path.join(output_dir, image.split(".")[0] + ".npz"), **feats
         )
@@ -130,7 +132,7 @@ def process_patches(
     images = os.listdir(image_dir)
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
-        scikit_image, torch_image = load_image(os.path.join(image_dir, image))
+        _, torch_image = load_image(os.path.join(image_dir, image))
         patches = get_patches(img_torch=torch_image)
 
         if model_id == "CLIP":
@@ -192,7 +194,7 @@ if __name__ == "__main__":
     # Segmentation options
     args.add_argument("--num_superpixels", type=int, default=25, help="Number of superpixels to use")
     args.add_argument("--algorithm", type=str, default="SLIC", choices=["SLIC", "watershed"], help="Superpixel algorithm to use")
-    args.add_argument("--rag",action="store_true",help="Generate a region adjacency graph for superpixels")
+    args.add_argument("--rag",action="store_true",help="Add RAG edge features to the superpixel features")
     
     args.add_argument("--whole_img", action="store_true", help="Generate whole image features")
     args.add_argument("--patches", action="store_true", help="Generate patch features instead of superpixel features")
@@ -229,7 +231,13 @@ if __name__ == "__main__":
             model_id=args.feature_extractor,
         )
     elif args.rag:
-        raise NotImplementedError("RAG not implemented yet")
+        process_rag(
+            image_dir=args.image_dir,
+            output_dir=args.save_dir,
+            num_superpixels=args.num_superpixels,
+            model_id=args.feature_extractor,
+            superpixel_algo=args.algorithm
+        )
     else:
         process_superpixels(
             image_dir=args.image_dir,

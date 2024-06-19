@@ -160,8 +160,8 @@ cython_debug/
 #.idea/
 
 
-test_images/
-test_output/
+test_inp/
+test_out/
 train-*
 test-*
 val-*
