@@ -5,6 +5,7 @@
 #$ -l gpu=1
 #$ -wd /data/scratch/eey362/superpixel-features
 #$ -j y
+#$ -o logs/
 #$ -l cluster=andrena
 
 
