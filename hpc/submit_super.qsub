@@ -3,7 +3,7 @@
 #$ -l h_vmem=11G
 #$ -pe smp 8
 #$ -l gpu=1
-#$ -wd /data/scratch/eey362/superpixel-features
+#$ -wd /data/home/eey362/superpixel-features
 #$ -o logs/
 #$ -j y
 #$ -l cluster=andrena
@@ -28,7 +28,7 @@ python3 main.py --image_dir /data/PublicDataSets/Coco-2014/${SET}2014/ \
 		--num_superpixels ${SIZE} \
 		--algorithm ${ALGO} \
 		--feature_extractor ${model_id} \
-		--rag \
+		--rag
 
 python3 merge_and_clean.py --save_dir /data/scratch/eey362/superpixel_features/${model_id}/${ALGO}/${SET}_m${SIZE} \
 							--output_dir /data/scratch/eey362/superpixel_features/${model_id}/${ALGO}/m${SIZE} \

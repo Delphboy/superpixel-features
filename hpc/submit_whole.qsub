@@ -3,7 +3,7 @@
 #$ -l h_vmem=11G
 #$ -pe smp 8
 #$ -l gpu=1
-#$ -wd /data/scratch/eey362/superpixel-features
+#$ -wd /data/home/eey362/superpixel-features
 #$ -j y
 #$ -o logs/
 #$ -l cluster=andrena

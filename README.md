@@ -4,11 +4,12 @@ Generate features for superpixels and patches using pretrained models. Features 
 
 ## Dependencies
 
-- PyTorch
-- PyTorch Geometric
-- Scikit Learn Image
-- OpenAI CLIP
-- Salesforce LAVIS
+```bash
+python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+python3 -m pip install scikit-image
+python3 -m pip install salesforce-lavis
+python3 -m pip install clip-openai
+```
 
 ## Parameters
 

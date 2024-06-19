@@ -10,7 +10,7 @@ from superpixels import (
     _get_bounding_boxes,
 )
 
-DEVICE = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 model = None
 preprocess = None

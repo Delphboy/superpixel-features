@@ -26,5 +26,5 @@ if __name__ == "__main__":
             print("Renamed {} to {}".format(filename, new_filename))
     
     # Delete the save_dir
-    if args.delete:
+    if config.delete:
         os.rmdir(config.save_dir)

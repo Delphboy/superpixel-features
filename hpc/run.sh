@@ -1,21 +1,23 @@
 #!/bin/bash
 
 declare sets=("train" "val" "test")
-declare sizes=(15) #20 25 30 50 75 100)
-declare algos=("slic" "watershed")
+declare sizes=(15 25 30 50 75)
+declare algos=("SLIC" "watershed")
 
-for algo in "${algos[@]}"
+for set in "${sets[@]}"
 do
-    for set in "${sets[@]}"
-    do
-        qsub -v SET=$set,ALGO=$algo -N $set-whole submit_whole.qsub
+    # qsub -v SET=$set -N $set-whole submit_whole.qsub
 
+    for algo in "${algos[@]}"
+    do
         for size in "${sizes[@]}"
         do
             echo "Processing $set with $size superpixels using $algo"
-            qsub -v SET=$set,SIZE=$size,ALGO=$algo -N $set-$size submit_super.qsub
+            qsub -v SET=$set,SIZE=$size,ALGO=$algo -N $set-$size-$algo submit_super.qsub
         done
     done
 done
 
-# squeue -u $(whoami)
+sleep 5
+
+qstat
