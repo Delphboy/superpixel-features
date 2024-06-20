@@ -90,7 +90,7 @@ def _extract_pixels_from_bounding_boxes(
 def _run_slic(
     img,
     n_segments: int=25,
-    compactness: float=10.0,
+    compactness: float=25.0,
     sigma: float=1.0,
     start_label: int=0,
 ):
