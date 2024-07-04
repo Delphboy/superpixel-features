@@ -78,7 +78,7 @@ def _extract_pixels_from_bounding_boxes(
 
             pixels[b, s] = F.interpolate(
                 img[
-                    b, :, y_min.int() : y_max.int(), x_min.int() : x_max.int()
+                    b, :, y_min.int(): y_max.int(), x_min.int(): x_max.int()
                 ].unsqueeze(0),
                 size=(224, 224),
                 mode="bilinear",
@@ -87,12 +87,13 @@ def _extract_pixels_from_bounding_boxes(
 
     return pixels
 
+
 def _run_slic(
     img,
-    n_segments: int=25,
-    compactness: float=25.0,
-    sigma: float=1.0,
-    start_label: int=0,
+    n_segments: int = 25,
+    compactness: float = 25.0,
+    sigma: float = 1.0,
+    start_label: int = 0,
 ):
     channel_axis = -1 if img.ndim == 3 else None
     segments_slic = slic(
@@ -106,16 +107,12 @@ def _run_slic(
     return segments_slic
 
 
-def _run_watershed(img,
-                   n_segments:int=25):
-    segments = watershed(
-        img,
-        markers=n_segments
-    )
+def _run_watershed(img, n_segments: int = 25):
+    segments = watershed(img, markers=n_segments)
     return segments
 
 
-def get_superpixels(img_scikit, n_segments: int=25, algo: str = "SLIC"):
+def get_superpixels(img_scikit, n_segments: int = 25, algo: str = "SLIC"):
     """
     Get the superpixels of an image using SLIC
     :param img_scikit: scikit image
@@ -123,13 +120,13 @@ def get_superpixels(img_scikit, n_segments: int=25, algo: str = "SLIC"):
     :return: Superpixel segmentation
     """
     if algo == "SLIC":
-        segments = _run_slic(img_scikit, n_segments=n_segments) # [X,Y]
+        segments = _run_slic(img_scikit, n_segments=n_segments)  # [X,Y]
     elif algo == "watershed":
-        segments = _run_watershed(img_scikit, n_segments=n_segments) # [X,Y,C]
-        segments = segments[:,:,0]
+        segments = _run_watershed(img_scikit, n_segments=n_segments)  # [X,Y,C]
+        segments = segments[:, :, 0]
     else:
         raise ValueError(f"Algorithm {algo} not supported.")
-    
+
     return torch.from_numpy(segments)
 
 

@@ -22,6 +22,14 @@ if __name__ == "__main__":
     image_locations = os.listdir("test_out")
     image_locations = [os.path.join("test_out", i) for i in image_locations]
 
+    total = 0.0
     for i in range(len(image_locations)):
         img, bbox, rag = get(image_locations, i)
-        print(f"{i+1}:\t",img.shape, bbox.shape, f"| {rag.shape}" if rag is not None else "")
+        total += img.shape[0]
+        print(
+            f"{i+1}:\t",
+            img.shape,
+            bbox.shape,
+            f"| {rag.shape}" if rag is not None else "",
+        )
+    print(f"Avg superpixels: {total/len(image_locations)}")
