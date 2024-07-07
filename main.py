@@ -41,7 +41,7 @@ def process_superpixels(
 ):
     # Get the images in the directory
     images = os.listdir(image_dir)
-    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    dev = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
     LOGGER.info(f"Device set to {dev}")
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
@@ -86,7 +86,7 @@ def process_rag(
 ):
     # Get the images in the directory
     images = os.listdir(image_dir)
-    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    dev = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
     LOGGER.info(f"Device set to {dev}")
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
@@ -165,7 +165,7 @@ def process_whole_image(
 ):
     # Get the images in the directory
     images = os.listdir(image_dir)
-    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    dev = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
     LOGGER.info(f"Device set to {dev}")
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
@@ -190,20 +190,45 @@ if __name__ == "__main__":
     args = argparse.ArgumentParser()
     args.add_argument("--image_dir", type=str, required=True, help="Path to image dir")
     args.add_argument("--save_dir", type=str, required=True, help="Path to save dir")
-    
+
     # Segmentation options
-    args.add_argument("--num_superpixels", type=int, default=25, help="Number of superpixels to use")
-    args.add_argument("--algorithm", type=str, default="SLIC", choices=["SLIC", "watershed"], help="Superpixel algorithm to use")
-    args.add_argument("--rag",action="store_true",help="Add RAG edge features to the superpixel features")
-    
-    args.add_argument("--whole_img", action="store_true", help="Generate whole image features")
-    args.add_argument("--patches", action="store_true", help="Generate patch features instead of superpixel features")
+    args.add_argument(
+        "--num_superpixels", type=int, default=25, help="Number of superpixels to use"
+    )
+    args.add_argument(
+        "--algorithm",
+        type=str,
+        default="SLIC",
+        choices=["SLIC", "watershed"],
+        help="Superpixel algorithm to use",
+    )
+    args.add_argument(
+        "--rag",
+        action="store_true",
+        help="Add RAG edge features to the superpixel features",
+    )
+
+    args.add_argument(
+        "--whole_img", action="store_true", help="Generate whole image features"
+    )
+    args.add_argument(
+        "--patches",
+        action="store_true",
+        help="Generate patch features instead of superpixel features",
+    )
 
     # Model options
-    args.add_argument("--feature_extractor", type=str, default="BLIP", choices=["BLIP", "CLIP", "ResNet"], help="Which model to use for feature extraction?")
+    args.add_argument(
+        "--feature_extractor",
+        type=str,
+        default="BLIP",
+        choices=["BLIP", "CLIP", "ResNet"],
+        help="Which model to use for feature extraction?",
+    )
 
     args = args.parse_args()
     get_logger()
+    print("started")
 
     # Sanity Checks
     if not os.path.exists(args.image_dir):
@@ -212,11 +237,14 @@ if __name__ == "__main__":
         os.makedirs(args.save_dir)
 
     if args.whole_img and args.patches:
-        raise ValueError("Cannot generate both whole image and patch features at the same time.")
-    
+        raise ValueError(
+            "Cannot generate both whole image and patch features at the same time."
+        )
+
     if (args.rag and args.patches) or (args.rag and args.whole_img):
-        raise ValueError("Cannot generate RAG features with patches or whole image features.")
-    
+        raise ValueError(
+            "Cannot generate RAG features with patches or whole image features."
+        )
 
     if args.whole_img:
         process_whole_image(
@@ -236,7 +264,7 @@ if __name__ == "__main__":
             output_dir=args.save_dir,
             num_superpixels=args.num_superpixels,
             model_id=args.feature_extractor,
-            superpixel_algo=args.algorithm
+            superpixel_algo=args.algorithm,
         )
     else:
         process_superpixels(
@@ -244,5 +272,5 @@ if __name__ == "__main__":
             output_dir=args.save_dir,
             num_superpixels=args.num_superpixels,
             model_id=args.feature_extractor,
-            superpixel_algo=args.algorithm
+            superpixel_algo=args.algorithm,
         )

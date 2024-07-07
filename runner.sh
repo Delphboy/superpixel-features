@@ -3,9 +3,9 @@
 conda init
 conda activate super
 
-declare sets=("train" "val" "test")
+declare sets=("test" "train") # "train" "test")
 declare sizes=(15) # 25 50) # 75 100)
-declare algos=("SLIC")
+declare algos=("watershed")
 
 img_root="/home/hsenior/coco/img"
 out_root="/home/hsenior/coco/superpixel_features"

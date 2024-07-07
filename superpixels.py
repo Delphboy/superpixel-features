@@ -7,7 +7,7 @@ from skimage.util import img_as_float
 
 transforms = trans.Compose([trans.ToTensor()])
 
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
 
 
 def load_image(image_path: str):
@@ -78,7 +78,7 @@ def _extract_pixels_from_bounding_boxes(
 
             pixels[b, s] = F.interpolate(
                 img[
-                    b, :, y_min.int(): y_max.int(), x_min.int(): x_max.int()
+                    b, :, y_min.int() : y_max.int(), x_min.int() : x_max.int()
                 ].unsqueeze(0),
                 size=(224, 224),
                 mode="bilinear",
@@ -108,7 +108,7 @@ def _run_slic(
 
 
 def _run_watershed(img, n_segments: int = 25):
-    segments = watershed(img, markers=n_segments)
+    segments = watershed(img, markers=n_segments, compactness=0.001)
     return segments
 
 
@@ -123,7 +123,8 @@ def get_superpixels(img_scikit, n_segments: int = 25, algo: str = "SLIC"):
         segments = _run_slic(img_scikit, n_segments=n_segments)  # [X,Y]
     elif algo == "watershed":
         segments = _run_watershed(img_scikit, n_segments=n_segments)  # [X,Y,C]
-        segments = segments[:, :, 0]
+        if len(segments.shape) == 3:
+            segments = segments[:, :, 0]
     else:
         raise ValueError(f"Algorithm {algo} not supported.")
 
