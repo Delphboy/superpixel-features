@@ -18,18 +18,11 @@ from features import (
 )
 from superpixels import get_patches, get_superpixels, load_image
 from rag import create_rag_edges
+from visualise import visualise_graph
 
-LOGGER = None
-
-
-def get_logger():
-    global LOGGER
-    if LOGGER is None:
-        logging.basicConfig(level=logging.INFO)
-        logger = logging.getLogger(__name__)
-        logger.setLevel(logging.INFO)
-        LOGGER = logger
-    return LOGGER
+logging.basicConfig(level=logging.INFO)
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 
 def process_superpixels(
@@ -38,10 +31,11 @@ def process_superpixels(
     num_superpixels: int,
     model_id: str,
     superpixel_algo: str = "SLIC",
+    is_visualise: bool = False,
 ):
     # Get the images in the directory
     images = os.listdir(image_dir)
-    dev = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     LOGGER.info(f"Device set to {dev}")
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
@@ -69,12 +63,13 @@ def process_superpixels(
                 feat_resize_dim=2048,
             )
 
+        features_torch = features
         features = features.squeeze(0).cpu().numpy()
         bounding_boxes = bounding_boxes.squeeze(0).cpu().numpy()
         feats = {"feat": features, "bbox": bounding_boxes}
-        np.savez_compressed(
-            os.path.join(output_dir, image.split(".")[0] + ".npz"), **feats
-        )
+        save_loc = os.path.join(output_dir, image.split(".")[0])
+        visualise_graph(save_loc, scikit_image, superpixels, features_torch[0], None)
+        np.savez_compressed(save_loc + ".npz", **feats)
 
 
 def process_rag(
@@ -83,10 +78,11 @@ def process_rag(
     num_superpixels: int,
     model_id: str,
     superpixel_algo: str = "SLIC",
+    is_visualise: bool = False,
 ):
     # Get the images in the directory
     images = os.listdir(image_dir)
-    dev = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     LOGGER.info(f"Device set to {dev}")
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
@@ -114,13 +110,16 @@ def process_rag(
                 feat_resize_dim=2048,
             )
 
+        features_torch = features
         features = features.squeeze(0).cpu().numpy()
         bounding_boxes = bounding_boxes.squeeze(0).cpu().numpy()
         edges = create_rag_edges(scikit_image, superpixels.cpu().numpy())
         feats = {"feat": features, "bbox": bounding_boxes, "rag": edges}
-        np.savez_compressed(
-            os.path.join(output_dir, image.split(".")[0] + ".npz"), **feats
+        save_loc = os.path.join(output_dir, image.split(".")[0])
+        visualise_graph(
+            save_loc, scikit_image, superpixels, features_torch[0], torch.tensor(edges)
         )
+        np.savez_compressed(save_loc + ".npz", **feats)
 
 
 def process_patches(
@@ -165,7 +164,7 @@ def process_whole_image(
 ):
     # Get the images in the directory
     images = os.listdir(image_dir)
-    dev = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+    dev = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     LOGGER.info(f"Device set to {dev}")
     for i, image in enumerate(images):
         LOGGER.info(f"{i+1}/{len(images)} | Processing image: {image}")
@@ -226,8 +225,13 @@ if __name__ == "__main__":
         help="Which model to use for feature extraction?",
     )
 
+    args.add_argument(
+        "--visualise",
+        action="store_true",
+        help="Produce a visualisation of the superpixels",
+    )
+
     args = args.parse_args()
-    get_logger()
     print("started")
 
     # Sanity Checks
@@ -265,6 +269,7 @@ if __name__ == "__main__":
             num_superpixels=args.num_superpixels,
             model_id=args.feature_extractor,
             superpixel_algo=args.algorithm,
+            is_visualise=args.visualise,
         )
     else:
         process_superpixels(
@@ -273,4 +278,5 @@ if __name__ == "__main__":
             num_superpixels=args.num_superpixels,
             model_id=args.feature_extractor,
             superpixel_algo=args.algorithm,
+            is_visualise=args.visualise,
         )

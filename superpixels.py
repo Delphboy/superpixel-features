@@ -7,7 +7,7 @@ from skimage.util import img_as_float
 
 transforms = trans.Compose([trans.ToTensor()])
 
-DEVICE = torch.device("cuda:3" if torch.cuda.is_available() else "cpu")
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def load_image(image_path: str):
@@ -35,10 +35,10 @@ def _get_bounding_boxes(img: torch.Tensor, seg: torch.Tensor) -> torch.Tensor:
     :return: Tensor of bounding boxes of shape (b, max_seg, 4)
     """
     B, H, W = seg.shape
-    bounding_boxes = torch.zeros((B, seg.max() + 1, 4)).to(img.device)
+    bounding_boxes = torch.zeros((B, seg.max() - 1 + 1, 4)).to(img.device)
 
     for b in range(B):
-        for s in range(seg.max() + 1):
+        for s in range(seg.max()):
             # Get the indices of the superpixel
             indices = torch.where(seg[b] == s)
 
@@ -54,6 +54,9 @@ def _get_bounding_boxes(img: torch.Tensor, seg: torch.Tensor) -> torch.Tensor:
                 continue
             bounding_boxes[b, s] = torch.tensor([x_min, y_min, x_max, y_max])
 
+    assert (
+        max(seg.reshape(-1).unique()) == bounding_boxes.shape[1]
+    ), "The number of superpixels and bounding boxes does not match"
     return bounding_boxes
 
 
@@ -109,6 +112,8 @@ def _run_slic(
 
 def _run_watershed(img, n_segments: int = 25):
     segments = watershed(img, markers=n_segments, compactness=0.001)
+    # Convert to 0-based indexing
+    segments = segments - 1
     return segments
 
 
