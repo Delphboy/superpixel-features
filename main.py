@@ -68,7 +68,10 @@ def process_superpixels(
         bounding_boxes = bounding_boxes.squeeze(0).cpu().numpy()
         feats = {"feat": features, "bbox": bounding_boxes}
         save_loc = os.path.join(output_dir, image.split(".")[0])
-        visualise_graph(save_loc, scikit_image, superpixels, features_torch[0], None)
+        if is_visualise:
+            visualise_graph(
+                save_loc, scikit_image, superpixels, features_torch[0], None
+            )
         np.savez_compressed(save_loc + ".npz", **feats)
 
 
@@ -116,9 +119,14 @@ def process_rag(
         edges = create_rag_edges(scikit_image, superpixels.cpu().numpy())
         feats = {"feat": features, "bbox": bounding_boxes, "rag": edges}
         save_loc = os.path.join(output_dir, image.split(".")[0])
-        visualise_graph(
-            save_loc, scikit_image, superpixels, features_torch[0], torch.tensor(edges)
-        )
+        if is_visualise:
+            visualise_graph(
+                save_loc,
+                scikit_image,
+                superpixels,
+                features_torch[0],
+                torch.tensor(edges),
+            )
         np.savez_compressed(save_loc + ".npz", **feats)
 
 

@@ -26,7 +26,7 @@ def visualise_graph(save_loc, image, superpixels, features, edges=None):
     fig, ax = plt.subplots(figsize=(50, 50))
 
     ax.imshow(image, alpha=0.8)
-    ax.contour(superpixels, linewidths=10, colors="yellow")
+    ax.contour(superpixels, linewidths=5, colors="yellow")
 
     positions = {}
     for i in np.unique(superpixels.reshape(-1)):
@@ -36,8 +36,18 @@ def visualise_graph(save_loc, image, superpixels, features, edges=None):
 
         positions[i] = (center_x, center_y)
 
-    nx.draw_networkx(G, ax=ax, pos=positions, node_size=5000)
+    nx.draw_networkx(
+        G,
+        ax=ax,
+        pos=positions,
+        node_size=7000,
+        font_size=32,
+        width=5,
+        arrowsize=50,
+        arrowstyle="->",
+        # connectionstyle="arc3,rad=0.1",
+    )
 
-    fig.suptitle("25 watershed superpixels - BLIP 15-NN", fontsize=75)
+    fig.suptitle("10 SLIC superpixels - BLIP RAG", fontsize=75)
     plt.tight_layout()
     plt.savefig(save_loc + "-visualisation.png")
