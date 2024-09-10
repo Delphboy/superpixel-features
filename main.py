@@ -17,7 +17,7 @@ from features import (
     get_resnet_whole_img_features,
 )
 from superpixels import get_patches, get_superpixels, load_image
-from rag import create_rag_edges
+from rag import create_rag_edges, create_region_adjacency_graph
 from visualise import visualise_graph
 
 logging.basicConfig(level=logging.INFO)
@@ -113,10 +113,15 @@ def process_rag(
                 feat_resize_dim=2048,
             )
 
+        assert_x = len(np.unique(superpixels.reshape(-1)))
+        assert_y = features.shape[1]
+        assert assert_x == assert_y, f"{assert_x} ---- {assert_y}"
+
         features_torch = features
         features = features.squeeze(0).cpu().numpy()
         bounding_boxes = bounding_boxes.squeeze(0).cpu().numpy()
         edges = create_rag_edges(scikit_image, superpixels.cpu().numpy())
+        # edges = create_region_adjacency_graph(superpixels.cpu().numpy())
         feats = {"feat": features, "bbox": bounding_boxes, "rag": edges}
         save_loc = os.path.join(output_dir, image.split(".")[0])
         if is_visualise:

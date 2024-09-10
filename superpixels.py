@@ -35,7 +35,7 @@ def _get_bounding_boxes(img: torch.Tensor, seg: torch.Tensor) -> torch.Tensor:
     :return: Tensor of bounding boxes of shape (b, max_seg, 4)
     """
     B, H, W = seg.shape
-    bounding_boxes = torch.zeros((B, seg.max() - 1 + 1, 4)).to(img.device)
+    bounding_boxes = torch.zeros((B, seg.max() + 1, 4)).to(img.device)
 
     for b in range(B):
         for s in range(seg.max()):
@@ -55,7 +55,7 @@ def _get_bounding_boxes(img: torch.Tensor, seg: torch.Tensor) -> torch.Tensor:
             bounding_boxes[b, s] = torch.tensor([x_min, y_min, x_max, y_max])
 
     assert (
-        max(seg.reshape(-1).unique()) == bounding_boxes.shape[1]
+        len(seg.reshape(-1).unique()) == bounding_boxes.shape[1]
     ), "The number of superpixels and bounding boxes does not match"
     return bounding_boxes
 

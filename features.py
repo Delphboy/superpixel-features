@@ -53,6 +53,7 @@ def get_resnet_superpixel_features(
     super_pixel_masks = super_pixel_masks.unsqueeze(0).to(DEVICE)
 
     bounding_boxes = _get_bounding_boxes(img, super_pixel_masks)
+    print(bounding_boxes.shape)
     pixels = _extract_pixels_from_bounding_boxes(img, bounding_boxes).to(DEVICE)
 
     pixels = pixels.reshape(-1, 3, 224, 224)
