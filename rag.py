@@ -1,36 +1,20 @@
 import numpy as np
 import torch
 from skimage import graph
-from torch_geometric.data import Data
-
-
-def pd(msg: str):
-    print(f"DEBUG | RAG | {msg}")
 
 
 def create_rag_edges(image, superpixel_labels):
-    pd(f"superpixels: {np.unique(superpixel_labels.reshape(-1))}")
+    image = np.transpose(image, (2, 0, 1))
     g = graph.rag_mean_color(image, superpixel_labels)
     edges = np.array(g.edges())  # [X, 2]
-    pd(f"edges:\n{edges}")
 
     edges = torch.tensor(edges).t().contiguous()
-    pd(f"processed edges: {edges}")
     edges = torch.cat([edges, torch.flip(edges, [0])], dim=1)
     edges = edges.cpu().numpy()
     return edges
 
 
 def create_region_adjacency_graph(superpixels):
-    """
-    Create a region adjacency graph from superpixels.
-
-    Args:
-    superpixels (numpy array): A 2D array where each pixel value represents the superpixel it belongs to.
-
-    Returns:
-    A PyTorch Geometric Data object representing the region adjacency graph.
-    """
     # Initialize the edge list
     edge_list = []
 
@@ -61,7 +45,3 @@ def create_region_adjacency_graph(superpixels):
     edge_index = torch.tensor(edge_list, dtype=torch.long).t().contiguous()
     return edge_index.cpu().numpy()
 
-    # # Create the PyTorch Geometric Data object
-    # graph = Data(edge_index=edge_index)
-    #
-    # return graph

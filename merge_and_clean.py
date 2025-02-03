@@ -1,5 +1,10 @@
 import argparse
 import os
+import logging
+
+logging.basicConfig(level=logging.INFO)
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 if __name__ == "__main__":
     args = argparse.ArgumentParser()
@@ -15,7 +20,8 @@ if __name__ == "__main__":
     if not os.path.exists(config.output_dir):
         os.makedirs(config.output_dir)
 
-    for filename in os.listdir(config.save_dir):
+    files = os.listdir(config.save_dir)
+    for filename in files:
         if filename.endswith(".npz"):
             new_filename = filename.split("_")[-1]
             new_filename = str(int(new_filename.split(".")[0])) + ".npz"
@@ -23,8 +29,8 @@ if __name__ == "__main__":
                 os.path.join(config.save_dir, filename),
                 os.path.join(config.output_dir, new_filename),
             )
-            print("Renamed {} to {}".format(filename, new_filename))
-    
+            logging.info("Renamed {} ----> {}".format(filename, new_filename))
+
     # Delete the save_dir
     if config.delete:
         os.rmdir(config.save_dir)

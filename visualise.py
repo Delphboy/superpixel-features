@@ -2,51 +2,31 @@ import numpy as np
 import matplotlib.pyplot as plt
 import networkx as nx
 from torch_geometric.data import Data
-from torch_geometric.nn import knn_graph, GCNConv
 from torch_geometric.utils import to_networkx
 
 
-def pd(msg: str):
-    print(f"DEBUG | Visualise | {msg}")
-
-
-def _run_conv(graph: Data):
-    network = GCNConv(2048, 512).cpu()
-    x = network(graph.x.cpu(), graph.edge_index.cpu())
-
-
-def _build_nx_graph(image, superpixels, features, edges=None):
-    if edges is None:
-        edges = knn_graph(features, k=3)
-
+def _build_nx_graph(features, edges):
     pyg_graph = Data(x=features.contiguous(), edge_index=edges)
-    pd(f"Superpixels {np.unique(superpixels.reshape(-1))}")
-    pd(f"Graph {pyg_graph}")
-    pd(f"Nodes {pyg_graph.x.shape}")
-    pd(f"Edges {pyg_graph.edge_index.shape}")
-    _run_conv(pyg_graph)
-    # pd(f"Edges:{edges}")
-
     G = to_networkx(pyg_graph, to_undirected=False)
 
     return G
 
 
 def visualise_graph(save_loc, image, superpixels, features, edges=None):
-    G = _build_nx_graph(image, superpixels, features, edges)
+    G = _build_nx_graph(features, edges)
     fig, ax = plt.subplots(figsize=(50, 50))
 
     ax.imshow(image, alpha=0.9)
-    # ax.contour(superpixels, linewidths=1, colors="yellow")
 
     # Calculate node positions for the figure
     positions = {}
     for i in np.unique(superpixels.reshape(-1)):
         mask = superpixels == i
-        center_x = np.median(np.where(mask)[1])
-        center_y = np.median(np.where(mask)[0])
+        # print(np.where(mask))
+        centre_x = np.median(np.where(mask)[2])
+        centre_y = np.median(np.where(mask)[1])
 
-        positions[i] = (center_x, center_y)
+        positions[i] = (centre_x, centre_y)
 
     # Create a color map for the superpixels
     cmap = plt.get_cmap("jet")
@@ -59,18 +39,7 @@ def visualise_graph(save_loc, image, superpixels, features, edges=None):
         mask = superpixels == i
         overlay[mask] = color[:3]  # Use only the RGB values
 
-    ax.imshow(overlay, alpha=0.4)
-
-    # Debug circles
-    # for k, pos in positions.items():
-    #     pd(pos)
-    #     c = plt.Circle(pos, 20, color="black")
-    #     ax.text(
-    #         pos[0], pos[1], f"{k}", ha="center", va="center", color="white", fontsize=36
-    #     )
-    #     ax.add_patch(c)
-
-    pd(f"The are {len(positions)} positions and {len(G.nodes)} nodes")
+    ax.imshow(overlay.squeeze(0), alpha=0.4)
 
     nx.draw_networkx(
         G,
@@ -85,7 +54,6 @@ def visualise_graph(save_loc, image, superpixels, features, edges=None):
         # connectionstyle="arc3,rad=0.1",
     )
 
-    fig.suptitle("DEBUGGING", fontsize=75)
-    # fig.suptitle("10 SLIC superpixels - BLIP RAG", fontsize=75)
+    fig.suptitle("Region Adjacency Graph", fontsize=75)
     plt.tight_layout()
     plt.savefig(save_loc + "-visualisation.png")
