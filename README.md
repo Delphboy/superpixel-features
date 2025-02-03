@@ -29,7 +29,7 @@ conda env create -f environment.yml
 
 > [!WARNING]
 > The `--segmenter PATCHES` flag will try to generate the number of segments give in `--num-segments`. However, this number must result in
-> the patching kernel size being a whole number. i.e. $k = \sqrt{\frac{224 \times 224}{\textit{--num_segments}}}$ must be an integer. See
+> the patching kernel size being a whole number. i.e. $k = \sqrt{\frac{224 \times 224}{N}}$ must be an integer (where $N$ is `--num_segments`). See
 > [patcher.py](segmenters/patcher.py) for implementation details.
 
 ## Examples
