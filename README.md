@@ -14,6 +14,20 @@ For compatiblity with the Karpathy Split of the COCO dataset, `merge_and_clean.p
 conda env create -f environment.yml
 ```
 
+```bash
+conda create --name sp python=3.9
+conda activate sp
+
+python3 -m pip install torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cu118
+python3 -m pip install torch_geometric
+
+python3 -m pip install git+https://github.com/openai/CLIP.git
+python3 -m pip install salesforce-lavis
+
+python3 -m pip install -U timm==1.0.14
+python3 -m pip install -U transformers==4.48.1
+```
+
 ## Parameters
 
 | Name | Description |
