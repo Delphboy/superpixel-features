@@ -74,7 +74,7 @@ def sanity_check_args(args):
     is_legal_segmenter = bool((bool(args.segmenter) and args.num_segments))
 
     assert model_name in SUPPORTED_MODELS, f"UNKNOWN EXTRACTOR: The model selected ({model_name}) is not supported. Please use one of {SUPPORTED_MODELS}"
-    assert seg_name in SUPPORTED_SEGS, f"UNKNOWN SEGMENTER: The segmenter selected ({seg_name}) is not supported. Please use one of {SUPPORTED_SEGS}"
+    assert is_whole_img or seg_name in SUPPORTED_SEGS, f"UNKNOWN SEGMENTER: The segmenter selected ({seg_name}) is not supported. Please use one of {SUPPORTED_SEGS}"
 
     # Option checks
     assert not(is_whole_img and is_partial_segmenter), "OPTIONS MISMATCH: Must generate whole image features or have a legal segmentation (segmenter and num_segments) configuration. ILLEGAL SEGMENTER DETECTED"
