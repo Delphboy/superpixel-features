@@ -46,6 +46,17 @@ python3 -m pip install -U transformers==4.48.1
 > the patching kernel size being a whole number. i.e. $k = \sqrt{\frac{224 \times 224}{N}}$ must be an integer (where $N$ is `--num_segments`). See
 > [patcher.py](segmenters/patcher.py) for implementation details.
 
+
+## Feature Sizes
+
+| Model | Feature Dim |
+|---|---|
+| ResNet | 2048 |
+| CLIP | 512 |
+| BLIPv2 | 768 |
+| SigLIP | 1152 |
+
+
 ## Examples
 
 Generate 25 Watershed superpixel CLIP features for the Karpathy Test Set with RAG edges
