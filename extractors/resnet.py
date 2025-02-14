@@ -13,16 +13,7 @@ class ResNet(Extractor):
         self.model.eval()
 
         self.model.to(self._device)
-        self.preprocess = trans.Compose(
-            [
-                trans.Resize((224, 224)),
-                trans.CenterCrop((224, 224)),
-                trans.Normalize(
-                    mean=(0.48145466, 0.4578275, 0.40821073),
-                    std=(0.26862954, 0.26130258, 0.27577711),
-                ),
-            ]
-        )
+        self.preprocess = ResNet101_Weights.IMAGENET1K_V1.transforms()
 
     def get_whole_img_features(self, img: torch.Tensor) -> torch.Tensor:
         img = self.preprocess(img).to(self._device)
