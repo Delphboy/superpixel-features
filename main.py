@@ -3,6 +3,7 @@ from extractors.blip import Blip
 from extractors.extractor import Extractor
 from extractors.resnet import ResNet
 from extractors.siglip import Siglip
+from extractors.vit import Vit
 from segmenters.patcher import Patcher
 from segmenters.segmenter import Segmentor
 from segmenters.slic import Slic
@@ -34,8 +35,9 @@ MODEL_RESNET = "RESNET"
 MODEL_CLIP = "CLIP"
 MODEL_BLIP = "BLIP"
 MODEL_SIGLIP = "SIGLIP"
+MODEL_VIT = "VIT"
 
-SUPPORTED_MODELS = [MODEL_RESNET, MODEL_CLIP, MODEL_BLIP, MODEL_SIGLIP]
+SUPPORTED_MODELS = [MODEL_RESNET, MODEL_CLIP, MODEL_BLIP, MODEL_SIGLIP, MODEL_VIT]
 
 def build_segmenter(args):
     segmenter_type = str(args.segmenter)
@@ -59,6 +61,8 @@ def build_extractor(args):
         return Blip()
     elif model_name == MODEL_SIGLIP:
         return Siglip()
+    elif model_name == MODEL_VIT:
+        return Vit()
     else:
         return Extractor()
 

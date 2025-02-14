@@ -34,7 +34,7 @@ python3 -m pip install -U transformers==4.48.1
 |--|--|
 | `--image_dir` | The directory containnig image inputs |
 | `--save_dir` | The directory to save the `npz` files to |
-| `--feature_extractor` | Which model to use? [BLIP / CLIP / RESNET / SIGLIP] |
+| `--feature_extractor` | Which model to use? [BLIP / CLIP / RESNET / SIGLIP / VIT] |
 | `--num_segments` | The number of superpixels to generate per image (Not compatible with `--whole_img`) |
 | `--segmenter` | Which superpixel algorithm to use? [SLIC / WATERSHED] |
 | `--whole_img` | (Flag) Generate a single feature for the whole image (Not compatible with `--rag`) |
@@ -55,6 +55,7 @@ python3 -m pip install -U transformers==4.48.1
 | CLIP | 512 |
 | BLIPv2 | 768 |
 | SigLIP | 1152 |
+| ViT (`vit_b_16`) | 1000 |
 
 
 ## Examples
