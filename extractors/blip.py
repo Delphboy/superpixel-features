@@ -27,7 +27,7 @@ class Blip(Extractor):
 
         with torch.no_grad():
             features = self.model.extract_features(sample, mode="image")
-        return features.image_embeds[0, 0, :].unsqueeze(0)
+        return features.image_embeds[0, 0, :]
 
     def get_superpixel_features(self, superpixels: torch.Tensor) -> torch.Tensor:
         """

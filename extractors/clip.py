@@ -26,7 +26,7 @@ class Clip(Extractor):
     def get_whole_img_features(self, img: torch.Tensor) -> torch.Tensor:
         img = self.preprocess(img).to(self._device)
         with torch.no_grad():
-            features = self.model(img).squeeze(-1)
+            features = self.model(img).squeeze(-1).squeeze(0)
         return features
 
     def get_superpixel_features(self, superpixels: torch.Tensor) -> torch.Tensor:

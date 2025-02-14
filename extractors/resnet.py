@@ -29,7 +29,7 @@ class ResNet(Extractor):
 
         with torch.no_grad():
             features = self.model(img).squeeze(-1)
-        return features.squeeze(-1)
+        return features.squeeze(-1).squeeze(0)
 
     def get_superpixel_features(self, superpixels: torch.Tensor) -> torch.Tensor:
         """

@@ -24,7 +24,11 @@ class Siglip(Extractor):
 
         with torch.no_grad():
             features = self.model(**input)
-        return features['image_embeds']
+
+        map = features['vision_model_output'].pooler_output
+        print("DEBUG", "map", map.shape)
+        return map.squeeze(0)
+
 
     def get_superpixel_features(self, superpixels: torch.Tensor) -> torch.Tensor:
         superpixels = superpixels.reshape(-1, 3, 224, 224)
@@ -38,5 +42,7 @@ class Siglip(Extractor):
 
         with torch.no_grad():
             features = self.model(**preprocessed_items)
-        return features['image_embeds']
+
+        map = features['vision_model_output'].pooler_output
+        return map
 
