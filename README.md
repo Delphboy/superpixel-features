@@ -53,7 +53,7 @@ python3 -m pip install -U transformers==4.48.1
 |---|---|
 | ResNet | 2048 |
 | CLIP | 512 |
-| BLIPv2 | 768 |
+| BLIP | 768 |
 | SigLIP | 1152 |
 | ViT (`vit_b_16`) | 1000 |
 

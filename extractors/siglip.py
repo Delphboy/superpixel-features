@@ -26,12 +26,13 @@ class Siglip(Extractor):
             features = self.model(**input)
 
         map = features['vision_model_output'].pooler_output
-        print("DEBUG", "map", map.shape)
+        x = features['vision_model_output'].last_hidden_state
         return map.squeeze(0)
 
 
-    def get_superpixel_features(self, superpixels: torch.Tensor) -> torch.Tensor:
-        superpixels = superpixels.reshape(-1, 3, 224, 224)
+    def get_superpixel_features(self, superpixels: torch.Tensor, reshape:bool=True) -> torch.Tensor:
+        if reshape:
+            superpixels = superpixels.reshape(-1, 3, 224, 224)
         preprocessed_items = self.preprocess(images=superpixels.to(self._device),
                                       text=['placehold test'],
                                       padding="max_length",

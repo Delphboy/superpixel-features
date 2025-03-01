@@ -29,17 +29,12 @@ class Clip(Extractor):
             features = self.model(img).squeeze(-1).squeeze(0)
         return features
 
-    def get_superpixel_features(self, superpixels: torch.Tensor) -> torch.Tensor:
-        superpixels = superpixels.reshape(-1, 3, 224, 224)
+    def get_superpixel_features(self, superpixels: torch.Tensor, reshape: bool = True) -> torch.Tensor:
+        if reshape:
+            superpixels = superpixels.reshape(-1, 3, 224, 224)
         superpixels = self.preprocess(superpixels)
         with torch.no_grad():
             features = self.model(superpixels).squeeze(-1)
 
-        return features
-
-    def get_patch_features(self, patches) -> torch.Tensor:
-        patches = self.preprocess(patches).to(self._device)
-        with torch.no_grad():
-            features = self.model(patches).squeeze(-1)
         return features
 

@@ -34,27 +34,13 @@ class Patcher(Segmentor):
             [
                 trans.Resize((self._HEIGHT, self._WIDTH)),
                 trans.CenterCrop((self._HEIGHT, self._WIDTH)),
-                # trans.Normalize(
-                #     mean=(0.48145466, 0.4578275, 0.40821073),
-                #     std=(0.26862954, 0.26130258, 0.27577711),
-                # ),
             ]
         )
         img_torch = preprocess(img_torch)
 
-        # TODO: If the num_segments is bad, should we pad the image?
-        # patch_size = int(img_torch.shape[2] / n_segments)
-        # remainder_x = img_torch.shape[2] % patch_size
-        # remainder_y = img_torch.shape[3] % patch_size
         patch_size = self._calculate_patch_size(n_segments)
-
-
-        # if remainder_x != 0 or remainder_y != 0:
-        #     padding_x = patch_size - remainder_x
-        #     padding_y = patch_size - remainder_y
-        #     img_torch = F.pad(img_torch, (0, padding_y, 0, padding_x))
 
         patches = F.unfold(img_torch, kernel_size=(patch_size, patch_size), stride=patch_size)
         patches = patches.permute(0, 2, 1)
-        patches = patches.reshape(-1, 3, patch_size, patch_size)
+        patches = patches.reshape(-1, 3, patch_size, patch_size).to(torch.float32)
         return patches

@@ -167,7 +167,7 @@ if __name__ == "__main__":
         elif type(segmenter) is Patcher:
             # Patch features
             patches = segmenter.get_segments(img_scikit, args.num_segments)
-            feats = extractor.get_patch_features(patches)
+            feats = extractor.get_superpixel_features(patches, reshape=False)
         else:
             # Whole image feature
             feats = extractor.get_whole_img_features(img_torch)

@@ -29,17 +29,17 @@ class Blip(Extractor):
             features = self.model.extract_features(sample, mode="image")
         return features.image_embeds[0, 0, :]
 
-    def get_superpixel_features(self, superpixels: torch.Tensor) -> torch.Tensor:
+    def get_superpixel_features(self, superpixels: torch.Tensor, reshape: bool = True) -> torch.Tensor:
         """
         Given an image, create superpixel features using SLIC and ResNet101
         :param img: Image tensor of shape (b, c, h, w)
         :return: Tensor of superpixel features of shape (b, n_segments, 2048)
         """
-        superpixels = superpixels.reshape(-1, 3, 224, 224)
+        if reshape:
+            superpixels = superpixels.reshape(-1, 3, 224, 224)
         superpixels = self.preprocess(superpixels)
         sample = {"image": superpixels}
         with torch.no_grad():
             features = self.model.extract_features(sample, mode="image")
 
         return features.image_embeds[:, 0, :]
-
