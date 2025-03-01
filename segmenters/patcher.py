@@ -28,6 +28,8 @@ class Patcher(Segmentor):
 
     def get_segments(self, img_scikit, n_segments: int = 25):
         img_torch = torch.from_numpy(img_scikit).to(self._device)
+        if len(img_torch.shape) != 3:
+            img_torch = img_torch.unsqueeze(2).repeat(1, 1, 3)
         img_torch = img_torch.unsqueeze(0).permute(0, 3, 1, 2)
 
         preprocess = trans.Compose(
